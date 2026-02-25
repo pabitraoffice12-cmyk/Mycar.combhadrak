@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mycar.com – Booking</title>
+  <style>
+    body{margin:0;font-family:Arial;background:#0f0f0f;color:#fff}
+    header{background:#ff6a00;padding:14px;text-align:center;font-weight:bold;font-size:20px}
+    .wrap{padding:12px}
+    .card{background:#1b1b1b;border-radius:10px;padding:12px;margin-bottom:12px}
+    input,select{width:100%;padding:10px;border-radius:6px;border:none;margin:6px 0}
+    .btn{display:block;background:#ff6a00;color:#fff;text-align:center;padding:10px;border-radius:6px;text-decoration:none;margin-top:8px}
+    .small{opacity:.7;font-size:12px}
+    .hide{display:none}
+    .list{background:#101010;border-radius:8px;padding:8px;margin:6px 0}
+  </style>
+</head>
+<body>
+<header>Mycar.com – Car Care Services</header>
+
+<div class="wrap" id="loginBox">
+  <div class="card">
+    <h3>Login / Signup</h3>
+    <input id="user" placeholder="Your Name"/>
+    <input id="phone" placeholder="Mobile Number"/>
+    <a class="btn" onclick="login()">Continue</a>
+    <div class="small">* Simple demo login (no OTP)</div>
+  </div>
+</div>
+
+<div class="wrap hide" id="appBox">
+  <div class="card">
+    <h3>Book a Service</h3>
+    <input id="car" placeholder="Car Model"/>
+    <select id="service">
+      <option>Car Wash</option>
+      <option>Interior Wash</option>
+      <option>Exterior Wash</option>
+      <option>PPF</option>
+      <option>Ceramic Coating</option>
+      <option>Polish</option>
+      <option>Glass Cleaning</option>
+      <option>Alignment</option>
+      <option>Home Wash</option>
+    </select>
+    <input id="date" type="date"/>
+    <a class="btn" onclick="book()">Book on WhatsApp</a>
+  </div>
+
+  <div class="card">
+    <h3>Your Booking History</h3>
+    <div id="history"></div>
+  </div>
+
+  <div class="card">
+    <h3>Admin Panel</h3>
+    <input id="adminPass" type="password" placeholder="Admin Password"/>
+    <a class="btn" onclick="openAdmin()">Open Admin</a>
+  </div>
+</div>
+
+<div class="wrap hide" id="adminBox">
+  <div class="card">
+    <h3>All Bookings (Admin)</h3>
+    <div id="adminList"></div>
+    <a class="btn" onclick="logoutAdmin()">Back</a>
+  </div>
+</div>
+
+<script>
+  const WA = "8260878520";
+  const ADMIN_PASS = "Mycarpabitra@2025";
+
+  let userData = {};
+  let bookings = JSON.parse(localStorage.getItem("bookings")||"[]");
+
+  function login(){
+    const u = user.value.trim();
+    const p = phone.value.trim();
+    if(!u || !p) return alert("Name and phone required");
+    userData = {u,p};
+    loginBox.classList.add("hide");
+    appBox.classList.remove("hide");
+    renderHistory();
+  }
+
+  function book(){
+    const car = document.getElementById("car").value;
+    const service = document.getElementById("service").value;
+    const date = document.getElementById("date").value;
+    if(!car || !date) return alert("Fill car model and date");
+
+    const item = {name:userData.u, phone:userData.p, car, service, date, time:new Date().toLocaleString()};
+    bookings.push(item);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+    renderHistory();
+
+    const msg = `New Booking%0AName: ${item.name}%0APhone: ${item.phone}%0ACar: ${item.car}%0AService: ${item.service}%0ADate: ${item.date}`;
+    window.open(`https://wa.me/91${WA}?text=${msg}`, "_blank");
+  }
+
+  function renderHistory(){
+    history.innerHTML = bookings
+      .filter(b=>b.phone===userData.p)
+      .map(b=>`<div class="list">🚗 ${b.car} | ${b.service}<br/>📅 ${b.date}</div>`)
+      .join("") || "<div class='small'>No bookings yet</div>";
+  }
+
+  function openAdmin(){
+    if(adminPass.value !== ADMIN_PASS) return alert("Wrong password");
+    appBox.classList.add("hide");
+    adminBox.classList.remove("hide");
+    adminList.innerHTML = bookings.map((b,i)=>
+      `<div class="list">
+        <b>${i+1}. ${b.name}</b> (${b.phone})<br/>
+        🚗 ${b.car} | 🧼 ${b.service} | 📅 ${b.date}<br/>
+        <a class="small" href="https://wa.me/91${WA}?text=Hi ${b.name}, your booking is received.">WhatsApp</a>
+      </div>`
+    ).join("") || "<div class='small'>No bookings</div>";
+  }
+
+  function logoutAdmin(){
+    adminBox.classList.add("hide");
+    appBox.classList.remove("hide");
+  }
+</script>
+</body>
+</html>
